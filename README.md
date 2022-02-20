@@ -10,5 +10,6 @@ Hints:
   1. The number of digits that are in the number and at the proper position
   2. The number of digits that are in the number, but not at the proper position
 
+But here we will play against the computer.
 
 Made using [Typer](https://typer.tiangolo.com/).
