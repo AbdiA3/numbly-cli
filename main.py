@@ -75,18 +75,6 @@ def validate(user_guess):
   if len(user_guess) != 5:
     errors.append('You should enter a 5 digit number.')
 
-  numbers = None
-  try:
-    with open('numbers.json') as f:
-      raw_numbers = f.read()
-      numbers = json.loads(raw_numbers)
-  except:
-    print('An error has occured')
-
-
-  if user_guess.lower() not in numbers:
-    errors.append(f'{user_guess} is not in the number list.')
-
   if errors:
     return (False, errors)
 
@@ -102,8 +90,8 @@ def main(
   '''
 
 
-  main_text = f'{typer.style("                        ", bg=typer.colors.GREEN)}\n'
-  main_text += f'{typer.style("A CLI version of Numbly.", fg=typer.colors.GREEN, bold=True)}\n'
+  main_text = f'{typer.style("      ", bg=typer.colors.GREEN)}\n'
+  main_text += f'{typer.style("Numbly.", fg=typer.colors.GREEN, bold=True)}\n'
 
   if rules:
     main_text += f'''
@@ -129,13 +117,13 @@ But the catch is you only get {typer.style(' 6 ', fg=typer.colors.WHITE, bg=type
 
 
   while True:
-    random_number = generate_random_number().upper()
+    random_number = generate_random_number()
 
     flag = False
 
     for rnd in range(6):
       prompt_text = f'{typer.style(" #"+str(rnd+1)+" ", bg=typer.colors.MAGENTA, fg=typer.colors.WHITE, bold=True)} Type your guess'
-      user_guess = typer.prompt(prompt_text).upper()
+      user_guess = typer.prompt(prompt_text)
 
       while not validate(user_guess)[0]:
         errors = validate(user_guess)[1]
@@ -143,7 +131,7 @@ But the catch is you only get {typer.style(' 6 ', fg=typer.colors.WHITE, bg=type
         for error in errors:
           typer.secho(error, bg=typer.colors.RED, fg=typer.colors.WHITE, bold=True)
 
-        user_guess = typer.prompt(prompt_text).upper()
+        user_guess = typer.prompt(prompt_text)
 
       validation_status = verify(random_number, user_guess)
       status_grid = draw_result(validation_status, user_guess)
