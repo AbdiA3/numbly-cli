@@ -9,24 +9,21 @@ def generate_random_number():
   A function to generate a random 5 digit number 
   '''
 
-  return str(randint(10000, 99999))
+  random_number = str(randint(10000, 99999))
+
+  while len(set(random_number)) != 5:
+    random_number = str(randint(10000, 99999))
+
+  return random_number
 
 
-def draw_result(validation_status, user_guess):
+def draw_result(verification_status):
   '''
   A function to print the resutlt in a stylish way
   '''
 
-  status_grid = ''
-
-  for idx, status in enumerate(validation_status):
-    if status == 1:
-      status_grid += f'{typer.style(" "+user_guess[idx]+" ", fg=typer.colors.WHITE, bg=typer.colors.GREEN, bold=True)} '
-    elif status == 0:
-      status_grid += f'{typer.style(" "+user_guess[idx]+" ", fg=typer.colors.WHITE, bg=typer.colors.YELLOW, bold=True)} '
-    else:
-      status_grid += f'{typer.style(" "+user_guess[idx]+" ", fg=typer.colors.BLACK, bg=typer.colors.WHITE, bold=True)} '
-
+  status_grid = f'{typer.style(" "+str(verification_status[0])+" ", fg=typer.colors.WHITE, bg=typer.colors.GREEN, bold=True)} '  
+  status_grid += f'{typer.style(" "+str(verification_status[1])+" ", fg=typer.colors.WHITE, bg=typer.colors.YELLOW, bold=True)} '
   status_grid += '\n'
 
   return status_grid
@@ -35,34 +32,23 @@ def draw_result(validation_status, user_guess):
 def verify(random_number, user_guess):
   '''
   Verify the user guessed number with the random number picked based on the rule.
-
-    - if the current digit of the user guessed number is the same as the digit at 
-      the same position in the random number picked, then status of that position is 1
-    
-    - if the current digit of the user guessed number is not the same as the digit at 
-      the same position in the random number picked, but the digit exists in the random 
-      number picked, then status of that position is 0
-    
-    - if the current digit of the user guessed number is not in the random number picked,
-      then status of that position is -1
+  Rules:  
+    status_1. The number of digits that are in the number and at the proper position
+    status_2. The number of digits that are in the number, but not at the proper position
   '''
 
-  status = [None for i in range(5)]
+  status_1 = 0 
+  status_2 = 0
 
-  visited_digits = { digit: random_number.count(digit) for digit in random_number }
+  for idx, digit in enumerate(user_guess):
+    if digit == random_number[idx]:
+      status_1 += 1
 
+  for digit in user_guess:
+    if digit in random_number:
+      status_2 += 1
 
-  for idx in range(5):
-    if user_guess[idx] == random_number[idx] and visited_digits[user_guess[idx]] > 0:
-      status[idx] = 1
-      visited_digits[user_guess[idx]] -= 1
-    elif user_guess[idx] in random_number and visited_digits[user_guess[idx]] > 0:
-      status[idx] = 0
-      visited_digits[user_guess[idx]] -= 1
-    else:
-      status[idx] = -1
-
-  return status
+  return [status_1, status_2]
 
 
 def validate(user_guess):
@@ -74,6 +60,12 @@ def validate(user_guess):
 
   if len(user_guess) != 5:
     errors.append('You should enter a 5 digit number.')
+
+  if user_guess[0] == '0':
+    errors.append('The number cannot begin with 0.')
+
+  if len(set(user_guess)) != 5:
+    errors.append('Each digit in the number must be unique.')
 
   if errors:
     return (False, errors)
@@ -95,33 +87,28 @@ def main(
 
   if rules:
     main_text += f'''
-The rules are very simple.
-  - I pick a random 5 digit number
-  - You guess that number
-  - After you guess a number, I will give you hints.
-  - The hints are:
-    - If I show you a gray box, then the digit at 
-      that position is not in the number
-    - If I show you a yellow box, then the digit 
-      at that position is in the number, but in a different 
-      position
-    - If I show you a green box, then the digit at 
-      that position is in the number and at the same position
+I will pick a random 5 digit number, then the game is to guess that number.
+For each guess you make I will give you some hints, 2 hints to be exact.
 
-But the catch is you only get {typer.style(' 6 ', fg=typer.colors.WHITE, bg=typer.colors.RED, bold=True)} shots to get it right.
+Hints I will give you:  
+  1. The number of digits that are in the number and at the proper position
+  2. The number of digits that are in the number, but not at the proper position
+
+NOTE: It is guaranteed that each digit in the randomly picked number is unique.
+
+But the catch is you only get {typer.style(' 8 ', fg=typer.colors.WHITE, bg=typer.colors.RED, bold=True)} shots to get it right.
 '''
 
   main_text += f'{typer.style("I have picked a random number. Can you guess what it is?", fg=typer.colors.MAGENTA, bold=True)}\n'
 
   typer.echo(main_text)
 
-
   while True:
     random_number = generate_random_number()
 
     flag = False
 
-    for rnd in range(6):
+    for rnd in range(8):
       prompt_text = f'{typer.style(" #"+str(rnd+1)+" ", bg=typer.colors.MAGENTA, fg=typer.colors.WHITE, bold=True)} Type your guess'
       user_guess = typer.prompt(prompt_text)
 
@@ -133,11 +120,11 @@ But the catch is you only get {typer.style(' 6 ', fg=typer.colors.WHITE, bg=type
 
         user_guess = typer.prompt(prompt_text)
 
-      validation_status = verify(random_number, user_guess)
-      status_grid = draw_result(validation_status, user_guess)
+      verification_status = verify(random_number, user_guess)
+      status_grid = draw_result(verification_status)
       typer.echo(status_grid)
 
-      if(validation_status.count(1) == 5):
+      if(user_guess == random_number):
         typer.secho(f'You got it!! {typer.style(" "+user_guess+" ", bg=typer.colors.GREEN, fg=typer.colors.WHITE, bold=True)} was the number.')
         flag = True
         break 
