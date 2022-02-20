@@ -64,7 +64,7 @@ def validate(user_guess):
   if user_guess[0] == '0':
     errors.append('The number cannot begin with 0.')
 
-  if len(set(user_guess)) != 5:
+  if len(user_guess) == 5 and len(set(user_guess)) != 5:
     errors.append('Each digit in the number must be unique.')
 
   if errors:
